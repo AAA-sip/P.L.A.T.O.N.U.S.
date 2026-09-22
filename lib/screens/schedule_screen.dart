@@ -11,22 +11,31 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
+  late int _year;
+  late int _semester;
   int _week = 1;
-  int _semester = 1;
-  int _year = 2025;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    final now = DateTime.now();
+    _year = now.month >= 9 ? now.year : now.year - 1;
+    _semester = now.month >= 9 || now.month <= 1 ? 1 : 2;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   void _load() {
+    if (!mounted) return;
     context.read<AuthRepository>().loadSchedule(
           year: _year,
           semester: _semester,
           week: _week,
         );
+  }
+
+  void _onSpin(void Function() update) {
+    setState(update);
+    _load();
   }
 
   @override
@@ -57,11 +66,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          _spinField('Неделя', _week, 1, 20, (v) => setState(() { _week = v; _load(); })),
+          _spinField('Неделя', _week, 1, 20, (v) => _onSpin(() => _week = v)),
           const SizedBox(width: 8),
-          _spinField('Семестр', _semester, 1, 2, (v) => setState(() { _semester = v; _load(); })),
+          _spinField('Семестр', _semester, 1, 2, (v) => _onSpin(() => _semester = v)),
           const SizedBox(width: 8),
-          _spinField('Год', _year, 2023, 2030, (v) => setState(() { _year = v; _load(); })),
+          _spinField('Год', _year, 2023, 2030, (v) => _onSpin(() => _year = v)),
         ],
       ),
     );
@@ -85,7 +94,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               onPressed: value > min ? () => onChanged(value - 1) : null,
               icon: const Icon(Icons.remove),
             ),
-            Text('$value', style: const TextStyle(fontWeight: FontWeight.w600)),
+            Flexible(
+              child: Text(
+                '$value',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             IconButton(
               iconSize: 18,
               padding: EdgeInsets.zero,

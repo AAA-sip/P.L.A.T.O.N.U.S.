@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (err != null) {
       setState(() => _msg = err);
     } else {
-      context.go('/home');
+      context.go('/home/schedule');
     }
   }
 

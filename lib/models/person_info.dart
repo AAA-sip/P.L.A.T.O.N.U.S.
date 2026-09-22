@@ -24,7 +24,7 @@ class PersonInfo {
         groupName: j['groupName'] as String?,
         courseNumber: j['courseNumber'] as int?,
         gpa: j['gpa'] as String?,
-        studentId: j['studentID'] as int?,
+        studentId: (j['studentID'] ?? j['personId'] ?? j['personID']) as int?,
       );
 
   String? get name {

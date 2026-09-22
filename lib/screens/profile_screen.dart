@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_repository.dart';
 import '../models/person_info.dart';
+import '../widgets/biometric_switch.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -58,6 +59,8 @@ class ProfileScreen extends StatelessWidget {
         _infoTile(Icons.badge, 'Student ID', p.studentId?.toString()),
         _infoTile(Icons.school, 'Курс', p.courseNumber?.toString()),
         _infoTile(Icons.star, 'GPA', p.gpa),
+        const SizedBox(height: 8),
+        const BiometricSwitch(),
       ],
     );
   }

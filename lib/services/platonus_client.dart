@@ -1,10 +1,16 @@
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:path_provider/path_provider.dart';
 import '../config.dart';
 import '../models/login_request.dart';
 import '../models/login_response.dart';
 import '../models/person_info.dart';
 import '../models/week_schedule.dart';
 import '../models/nearest_schedule.dart';
+import '../models/student_task.dart';
+import '../models/journal.dart';
+import '../models/subject_detail.dart';
 import 'logging_interceptor.dart';
 
 class PlatonusAuthException implements Exception {
@@ -23,11 +29,25 @@ class PlatonusClient {
     validateStatus: (_) => true,
   ))..interceptors.add(LoggingInterceptor());
 
+  bool _cookiesReady = false;
+
+  Future<void> _ensureCookies() async {
+    if (_cookiesReady) return;
+    final dir = await getApplicationSupportDirectory();
+    _dio.interceptors.add(CookieManager(PersistCookieJar(
+      storage: FileStorage('${dir.path}/platonus_cookies'),
+    )));
+    _cookiesReady = true;
+  }
+
+  Future<void> init() => _ensureCookies();
+
   Options _opts(String? token) => Options(
         headers: PlatonusConfig.platonusHeaders(token: token),
       );
 
   Future<LoginResponse> login(LoginRequest req) async {
+    await _ensureCookies();
     final resp = await _dio.post(
       '/rest/api/mobile/authentication/login?language=1&lang=1',
       data: req.toJson(),
@@ -93,5 +113,70 @@ class PlatonusClient {
       return NearestScheduleResponse.fromJson(data);
     }
     return null;
+  }
+
+  Future<StudentTasksResponse> studentTasks(
+    String token, {
+    int year = 0,
+    int semester = 0,
+    String startDate = '',
+    String endDate = '',
+  }) async {
+    final resp = await _dio.post(
+      '/rest/assignments/studentTasks/1',
+      data: {
+        'term': semester,
+        'year': year,
+        'subjectID': -1,
+        'studyGroupID': -1,
+        'tutorID': -1,
+        'disciplineID': -1,
+        'countInPart': 20,
+        'partNumber': 0,
+        'startDate': startDate,
+        'endDate': endDate,
+        'recipientStatus': -1,
+      },
+      options: _opts(token),
+    );
+    _throwIfUnathorized(resp);
+    return StudentTasksResponse.fromJson(resp.data as Map<String, dynamic>);
+  }
+
+  Future<JournalDetail> journal(
+    String token, {
+    required int studentId,
+    required int year,
+    required int semester,
+  }) async {
+    final resp = await _dio.get(
+      '/journal/$year/$semester/$studentId',
+      options: _opts(token),
+    );
+    _throwIfUnathorized(resp);
+    return JournalDetail.fromJson(resp.data as List<dynamic>);
+  }
+
+  Future<SubjectDetail> subjectDetail(
+    String token, {
+    required int studentId,
+    required int subjectId,
+    required int year,
+    required int semester,
+    required int queryId,
+  }) async {
+    final resp = await _dio.get(
+      '/subject/$year/$semester/$subjectId/$studentId',
+      queryParameters: {'queryID': queryId},
+      options: _opts(token),
+    );
+    _throwIfUnathorized(resp);
+    return SubjectDetail.fromJson(resp.data as List<dynamic>);
+  }
+
+  void _throwIfUnathorized(Response resp) {
+    if (resp.statusCode == 401 || resp.statusCode == 403) {
+      throw PlatonusAuthException('Токен истёк (${resp.statusCode})');
+    }
   }
 }

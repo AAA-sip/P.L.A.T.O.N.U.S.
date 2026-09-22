@@ -13,6 +13,12 @@ class WeekScheduleResponse {
         startSemesterPeriod: j['startSemesterPeriod'] as String?,
         finishSemesterPeriod: j['finishSemesterPeriod'] as String?,
       );
+
+  Map<String, dynamic> toJson() => {
+        'schedule': schedule?.map((e) => e.toJson()).toList(),
+        'startSemesterPeriod': startSemesterPeriod,
+        'finishSemesterPeriod': finishSemesterPeriod,
+      };
 }
 
 class RawDay {
@@ -29,6 +35,12 @@ class RawDay {
             ?.map((e) => RawLesson.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
+
+  Map<String, dynamic> toJson() => {
+        'date': date,
+        'day': day,
+        'lessons': lessons?.map((e) => e.toJson()).toList(),
+      };
 }
 
 class RawLesson {
@@ -71,4 +83,18 @@ class RawLesson {
         onlineClass: j['onlineClass'] as bool?,
         studyGroupName: j['studyGroupName'] as String?,
       );
+
+  Map<String, dynamic> toJson() => {
+        'subjectName': subjectName,
+        'time': time,
+        'auditory': auditory,
+        'building': building,
+        'tutorName': tutorName,
+        'tutorShortName': tutorShortName,
+        'groupTypeShortName': groupTypeShortName,
+        'groupTypeFullName': groupTypeFullName,
+        'studyGroupID': studyGroupId,
+        'onlineClass': onlineClass,
+        'studyGroupName': studyGroupName,
+      };
 }

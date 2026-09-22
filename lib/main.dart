@@ -9,10 +9,11 @@ void main() async {
   await dotenv.load(fileName: '.env');
   final auth = AuthRepository();
   await auth.tryRestore();
+  final router = createRouter(auth);
   runApp(
     ChangeNotifierProvider.value(
       value: auth,
-      child: const App(),
+      child: App(router: router),
     ),
   );
 }

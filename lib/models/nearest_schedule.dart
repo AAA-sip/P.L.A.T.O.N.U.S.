@@ -13,4 +13,8 @@ class NearestScheduleResponse {
             ?.map((e) => RawDay.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
+
+  Map<String, dynamic> toJson() => {
+        'subjects': subjects?.map((e) => e.toJson()).toList(),
+      };
 }
